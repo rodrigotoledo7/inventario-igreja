@@ -1,27 +1,7 @@
 services:
-  backend:
-    build:
-      context: ./back
-    ports:
-      - "5000:5000"
-    environment:
-      - FLASK_ENV=development
-    depends_on:
-      - db
-    networks:
-      - app-network
-  frontend:
-    build:
-      context: ./front
-    ports:
-      - "3000:80"
-    networks:
-      - app-network
-    depends_on:
-      - backend
   db:
     image: mariadb:10.9
-    container_name: igreja-db
+    container_name: igreja_db
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: igreja_db
@@ -33,6 +13,28 @@ services:
       - db_data:/var/lib/mysql
     networks:
       - app-network
+  backend:
+    build:
+      context: ./back
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL="mysql+mysqlconnector://user:password@db/igreja_db"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./front
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
 
 networks:
   app-network:

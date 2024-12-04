@@ -1,5 +1,5 @@
-flask
-flask_sqlalchemy
-flask_cors
-pymysql
+fastapi
+uvicorn
+sqlalchemy
 python-dotenv
+pymysql

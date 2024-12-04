@@ -1,11 +1,18 @@
-from . import db
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
 
-class Local(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(100), nullable=False)
+Base = declarative_base()
 
-class Bem(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(100), nullable=False)
-    descricao = db.Column(db.String(255))
-    local_id = db.Column(db.Integer, db.ForeignKey('local.id'), nullable=False)
+class Local(Base):
+    __tablename__ = "locais"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String(100), nullable=False)
+
+class Bem(Base):
+    __tablename__ = "bens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String(100), nullable=False)
+    descricao = Column(String(255))
+    local_id = Column(Integer, ForeignKey("locais.id"), nullable=False)
