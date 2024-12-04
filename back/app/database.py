@@ -5,7 +5,6 @@ from app.config import settings
 import os
 print("DATABASE_URL:", os.getenv("DATABASE_URL"))
 
-# Carregar variáveis de ambiente
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -14,7 +13,6 @@ load_dotenv()
 # DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://user:password@localhost/igreja_db")
 DATABASE_URL = settings.DATABASE_URL
 
-# Configuração do SQLAlchemy
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

@@ -5,13 +5,7 @@ from app.models import Bem, Local
 
 router = APIRouter()
 
-# Rotas para "Locais"
-@router.get("/locais")
-def get_locais(db: Session = Depends(get_db)):
-    locais = db.query(Local).all()
-    return [{"id": l.id, "nome": l.nome} for l in locais]
 
-# Rotas para "Bens"
 @router.get("/bens")
 def get_bens(db: Session = Depends(get_db)):
     bens = db.query(Bem).all()
@@ -25,7 +19,6 @@ def create_bem(bem: dict, db: Session = Depends(get_db)):
     db.refresh(novo_bem)
     return {"message": "Bem criado com sucesso", "id": novo_bem.id}
 
-# Rotas para "Locais"
 @router.get("/locais")
 def get_locais(db: Session = Depends(get_db)):
     locais = db.query(Local).all()

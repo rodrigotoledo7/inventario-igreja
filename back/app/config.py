@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 import os
 
-# Carregar variáveis de ambiente
 load_dotenv()
 
 class Settings:
