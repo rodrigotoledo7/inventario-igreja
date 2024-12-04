@@ -18,4 +18,4 @@ COPY . .
 EXPOSE 5000
 
 # Comando para iniciar o backend
-CMD ["python", "wsgi.py"]
+CMD ["python", "app/app.py"]
