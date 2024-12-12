@@ -3,3 +3,4 @@ uvicorn
 sqlalchemy
 python-dotenv
 pymysql
+mysql-connector-python==8.0.13
