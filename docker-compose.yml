@@ -2,34 +2,22 @@ version: '3.8'
 
 services:
   db:
-    image: mariadb:10.9
+    image: mariadb
     container_name: igreja_db
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: igreja_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
     ports:
       - "3306:3306"
-    volumes:
-      - db_data:/var/lib/mysql
-    # env_file:
-    #   - .env
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "igreja_db"]
-      interval: 10s
-      retries: 5
-      start_period: 30s
-      timeout: 10s
   backend:
     build:
       context: ./back
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL="mysql+mysqlconnector://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_DATABASE}:3306/${MYSQL_DATABASE}"
+      DATABASE_URL: "mysql+mysqlconnector://user:password@igreja_db:3306/igreja_db"
     env_file:
       - .env
     networks:
