@@ -3,4 +3,8 @@ uvicorn
 sqlalchemy
 python-dotenv
 pymysql
-mysql-connector-python==8.0.13
+passlib[bcrypt]
+python-jose[cryptography]
+pydantic
+pydantic-settings
+python-multipart

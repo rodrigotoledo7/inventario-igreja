@@ -1,8 +1,18 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.routes import router
 from app.database import engine, Base
 
-app = FastAPI()
+app = FastAPI(title="Inventário IPB Porto Velho")
+
+# Configuração de CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Em produção, especifique o domínio do frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 Base.metadata.create_all(bind=engine)
 

@@ -1,15 +1,17 @@
 import axios from 'axios';
 
-// Definindo a URL do backend - usamos o nome do serviço do docker-compose
-const API_URL = 'http://localhost:5000'; // 'backend' é o nome do serviço no docker-compose.yml
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-// Função para pegar dados de um endpoint
-export const fetchData = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/api/some-endpoint`);
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao buscar dados', error);
-    throw error;
+const api = axios.create({
+  baseURL: API_URL,
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-};
+  return config;
+});
+
+export default api;
