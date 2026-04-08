@@ -1,8 +1,5 @@
-from dotenv import load_dotenv
-import os
+from app.core.config import Settings, settings
 
-load_dotenv()
+Config = settings
 
-class Config:
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL').strip('"').strip("'")
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+__all__ = ["Config", "Settings", "settings"]

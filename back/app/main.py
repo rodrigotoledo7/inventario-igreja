@@ -1,14 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import router
+from app.api.routes import api_router
+from app.core.config import settings
 from app.database import engine, Base
 
 app = FastAPI(title="Inventário IPB Porto Velho")
 
-# Configuração de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Em produção, especifique o domínio do frontend
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -16,8 +16,8 @@ app.add_middleware(
 
 Base.metadata.create_all(bind=engine)
 
-app.include_router(router)
+app.include_router(api_router)
 
 @app.get("/")
 def read_root():
-    return {"message": "Inventário da Igreja - API em FastAPI"}
+    return {"message": "Inventario da Igreja - API em FastAPI"}

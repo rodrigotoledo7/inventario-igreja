@@ -14,4 +14,8 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+export const getApiErrorMessage = (error, fallbackMessage) => {
+  return error?.response?.data?.detail || fallbackMessage;
+};
+
 export default api;

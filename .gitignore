@@ -1,0 +1,8 @@
+.env
+back/.env
+back/app/.env
+front/node_modules
+front/build
+inventario
+__pycache__
+*.pyc

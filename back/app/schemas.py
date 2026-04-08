@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import Optional, List
+from pydantic import BaseModel, Field
+from typing import Optional
 from datetime import datetime
 from enum import Enum
 
@@ -8,7 +8,7 @@ class TipoBem(str, Enum):
     IMOVEL = "imovel"
 
 class BemBase(BaseModel):
-    nome: str
+    nome: str = Field(min_length=2, max_length=100)
     descricao: Optional[str] = None
     tipo: TipoBem = TipoBem.MOVEL
     valor_estimado: Optional[float] = None
@@ -26,7 +26,7 @@ class BemResponse(BemBase):
         from_attributes = True
 
 class LocalBase(BaseModel):
-    nome: str
+    nome: str = Field(min_length=2, max_length=100)
 
 class LocalCreate(LocalBase):
     pass
@@ -38,8 +38,8 @@ class LocalResponse(LocalBase):
         from_attributes = True
 
 class UserCreate(BaseModel):
-    username: str
-    password: str
+    username: str = Field(min_length=3, max_length=50)
+    password: str = Field(min_length=6, max_length=128)
 
 class UserResponse(BaseModel):
     id: int
