@@ -8,7 +8,15 @@ Em produção, o frontend deve acessar a API pelo mesmo domínio usando o caminh
 - API via proxy: `https://sistema.ipbportovelho.org.br/api`
 - Backend interno: acessível apenas na rede Docker/proxy
 
-Se for necessário sobrescrever esse comportamento em outro ambiente, defina `REACT_APP_API_URL`.
+Se for necessario sobrescrever esse comportamento em outro ambiente, defina `REACT_APP_API_URL` no build da imagem do frontend, nao apenas em runtime.
+
+### Build da imagem do frontend
+
+O bundle React le `REACT_APP_API_URL` durante `npm run build`. Em producao, a imagem deve ser compilada com `REACT_APP_API_URL=/api`.
+
+- No `front/Dockerfile`, isso entra como `ARG` e `ENV` antes do `npm run build`.
+- No `docker-compose.yml`, o valor e passado em `build.args`.
+- Em producao, o codigo do frontend ja prioriza `/api`, evitando gravar `localhost:8080/api` no bundle final.
 
 ## Getting Started with Create React App
 

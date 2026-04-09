@@ -40,12 +40,13 @@ services:
       - app-network
 
   frontend:
-    build: ./front
+    build:
+      context: ./front
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-/api}
     restart: always
     ports:
       - "80:80"
-    environment:
-      - REACT_APP_API_URL=${REACT_APP_API_URL}
     depends_on:
       - backend
     networks:
