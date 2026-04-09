@@ -1,5 +1,15 @@
 # Projeto atualizado incluindo arquivos do back, códigos ajustados pelo chatGPT
 
+## API atrás do frontend
+
+Em produção, o frontend deve acessar a API pelo mesmo domínio usando o caminho `/api`.
+
+- Frontend: `https://sistema.ipbportovelho.org.br`
+- API via proxy: `https://sistema.ipbportovelho.org.br/api`
+- Backend interno: acessível apenas na rede Docker/proxy
+
+Se for necessário sobrescrever esse comportamento em outro ambiente, defina `REACT_APP_API_URL`.
+
 ## Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

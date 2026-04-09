@@ -13,7 +13,6 @@ class Settings(BaseSettings):
             "http://localhost,"
             "http://localhost:80,"
             "http://localhost:3000,"
-            "https://api.ipbportovelho.org.br,"
             "https://sistema.ipbportovelho.org.br"
         ),
         alias="CORS_ORIGINS",

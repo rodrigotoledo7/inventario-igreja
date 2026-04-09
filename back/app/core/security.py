@@ -12,7 +12,7 @@ from app.models import User
 
 ALGORITHM = "HS256"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
