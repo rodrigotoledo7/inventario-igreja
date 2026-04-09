@@ -10,7 +10,10 @@ router = APIRouter(prefix="/locais", tags=["locais"])
 
 
 @router.get("", response_model=list[LocalResponse])
-def list_locais(db: Session = Depends(get_db)) -> list[Local]:
+def list_locais(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[Local]:
     return db.query(Local).order_by(Local.nome.asc()).all()
 
 
@@ -29,4 +32,3 @@ def create_local(
     db.commit()
     db.refresh(new_local)
     return new_local
-

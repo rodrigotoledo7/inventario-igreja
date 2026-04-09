@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
-from app.core.security import get_password_hash
+from app.core.security import get_current_admin_user, get_password_hash
 from app.database import get_db
 from app.models import User
 from app.schemas import UserCreate, UserResponse
@@ -13,7 +12,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.get("", response_model=list[UserResponse])
 def list_users(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin_user),
 ) -> list[User]:
     return db.query(User).order_by(User.username.asc()).all()
 
@@ -22,7 +21,7 @@ def list_users(
 def create_user(
     payload: UserCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin_user),
 ) -> User:
     existing_user = db.query(User).filter(User.username == payload.username).first()
     if existing_user:

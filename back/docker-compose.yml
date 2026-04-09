@@ -25,10 +25,14 @@ services:
     ports:
       - "8000:8000"
     environment:
+      APP_ENV: ${APP_ENV:-development}
       DATABASE_URL: "mysql+pymysql://${MYSQL_USER:-igreja_user}:${MYSQL_PASSWORD:-change-me-user}@db:3306/${MYSQL_DATABASE:-igreja_db}"
       SECRET_KEY: ${SECRET_KEY:-change-me-app-secret}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:80,http://localhost:3000}
+      ADMIN_USERNAMES: ${ADMIN_USERNAMES:-admin}
       INIT_ADMIN_USERNAME: ${INIT_ADMIN_USERNAME:-admin}
       INIT_ADMIN_PASSWORD: ${INIT_ADMIN_PASSWORD:-admin1234}
+      DEFAULT_LOCAL_NOME: ${DEFAULT_LOCAL_NOME:-Templo Sede}
     depends_on:
       db:
         condition: service_healthy

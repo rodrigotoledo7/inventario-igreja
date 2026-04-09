@@ -10,7 +10,10 @@ router = APIRouter(prefix="/bens", tags=["bens"])
 
 
 @router.get("", response_model=list[BemResponse])
-def list_bens(db: Session = Depends(get_db)) -> list[Bem]:
+def list_bens(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[Bem]:
     return db.query(Bem).order_by(Bem.nome.asc()).all()
 
 
@@ -41,4 +44,3 @@ def create_bem(
     db.commit()
     db.refresh(bem)
     return bem
-
