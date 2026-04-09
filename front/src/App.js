@@ -29,6 +29,7 @@ const App = () => {
     const [locais, setLocais] = useState([]);
     const [bens, setBens] = useState([]);
     const [usuarios, setUsuarios] = useState([]);
+    const [canManageUsers, setCanManageUsers] = useState(false);
     const [novoBem, setNovoBem] = useState(emptyBem);
     const [editingUserId, setEditingUserId] = useState(null);
     const [editingLocalId, setEditingLocalId] = useState(null);
@@ -41,16 +42,27 @@ const App = () => {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [resPerfil, resLocais, resBens, resUsuarios] = await Promise.all([
+                const [resPerfil, resLocais, resBens] = await Promise.all([
                     api.get("/me"),
                     api.get("/locais"),
                     api.get("/bens"),
-                    api.get("/users"),
                 ]);
                 setUsuarioAtual(resPerfil.data);
                 setLocais(resLocais.data);
                 setBens(resBens.data);
-                setUsuarios(resUsuarios.data);
+
+                try {
+                    const resUsuarios = await api.get("/users");
+                    setUsuarios(resUsuarios.data);
+                    setCanManageUsers(true);
+                } catch (error) {
+                    if (error?.response?.status === 403) {
+                        setUsuarios([]);
+                        setCanManageUsers(false);
+                    } else {
+                        throw error;
+                    }
+                }
             } catch (error) {
                 console.error("Erro ao carregar dados", error);
                 if (error?.response?.status === 401) {
@@ -64,6 +76,7 @@ const App = () => {
         } else {
             setUsuarioAtual(null);
             setUsuarios([]);
+            setCanManageUsers(false);
             setLocais([]);
             setBens([]);
         }
@@ -338,52 +351,60 @@ const App = () => {
                         <h2>Cadastro de usuarios</h2>
                         <span>{usuarios.length} usuario(s)</span>
                     </div>
-                    <form className="panel-form" onSubmit={handleCreateUser}>
-                        <label>
-                            Usuario
-                            <input type="text" placeholder="novo.usuario" value={novoUsuario.username} onChange={(e) => setNovoUsuario({ ...novoUsuario, username: e.target.value })} required />
-                        </label>
-                        <label>
-                            Senha
-                            <input type="password" placeholder="Minimo de 6 caracteres" value={novoUsuario.password} onChange={(e) => setNovoUsuario({ ...novoUsuario, password: e.target.value })} required />
-                        </label>
-                        <button type="submit">Cadastrar usuario</button>
-                    </form>
-                    <div className="list-stack">
-                        {usuarios.map((usuario) => (
-                            <div key={usuario.id} className="list-card list-card-column">
-                                {editingUserId === usuario.id ? (
-                                    <form className="panel-form compact-form" onSubmit={(e) => handleUpdateUser(e, usuario.id)}>
-                                        <label>
-                                            Usuario
-                                            <input type="text" value={editUsuario.username} onChange={(e) => setEditUsuario({ ...editUsuario, username: e.target.value })} required />
-                                        </label>
-                                        <label>
-                                            Nova senha
-                                            <input type="password" placeholder="Opcional" value={editUsuario.password} onChange={(e) => setEditUsuario({ ...editUsuario, password: e.target.value })} />
-                                        </label>
-                                        <div className="actions-row">
-                                            <button type="submit">Salvar</button>
-                                            <button type="button" className="ghost-button" onClick={cancelUserEdit}>Cancelar</button>
-                                        </div>
-                                    </form>
-                                ) : (
-                                    <>
-                                        <div className="card-copy">
-                                            <strong>{usuario.username}</strong>
-                                            <span>ID {usuario.id}</span>
-                                        </div>
-                                        <div className="actions-row">
-                                            <button type="button" className="secondary-button" onClick={() => beginUserEdit(usuario)}>Editar</button>
-                                            <button type="button" className="danger-button" onClick={() => handleDeleteUser(usuario)} disabled={usuarioAtual?.id === usuario.id}>
-                                                Excluir
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
+                    {canManageUsers ? (
+                        <>
+                            <form className="panel-form" onSubmit={handleCreateUser}>
+                                <label>
+                                    Usuario
+                                    <input type="text" placeholder="novo.usuario" value={novoUsuario.username} onChange={(e) => setNovoUsuario({ ...novoUsuario, username: e.target.value })} required />
+                                </label>
+                                <label>
+                                    Senha
+                                    <input type="password" placeholder="Minimo de 6 caracteres" value={novoUsuario.password} onChange={(e) => setNovoUsuario({ ...novoUsuario, password: e.target.value })} required />
+                                </label>
+                                <button type="submit">Cadastrar usuario</button>
+                            </form>
+                            <div className="list-stack">
+                                {usuarios.map((usuario) => (
+                                    <div key={usuario.id} className="list-card list-card-column">
+                                        {editingUserId === usuario.id ? (
+                                            <form className="panel-form compact-form" onSubmit={(e) => handleUpdateUser(e, usuario.id)}>
+                                                <label>
+                                                    Usuario
+                                                    <input type="text" value={editUsuario.username} onChange={(e) => setEditUsuario({ ...editUsuario, username: e.target.value })} required />
+                                                </label>
+                                                <label>
+                                                    Nova senha
+                                                    <input type="password" placeholder="Opcional" value={editUsuario.password} onChange={(e) => setEditUsuario({ ...editUsuario, password: e.target.value })} />
+                                                </label>
+                                                <div className="actions-row">
+                                                    <button type="submit">Salvar</button>
+                                                    <button type="button" className="ghost-button" onClick={cancelUserEdit}>Cancelar</button>
+                                                </div>
+                                            </form>
+                                        ) : (
+                                            <>
+                                                <div className="card-copy">
+                                                    <strong>{usuario.username}</strong>
+                                                    <span>ID {usuario.id}</span>
+                                                </div>
+                                                <div className="actions-row">
+                                                    <button type="button" className="secondary-button" onClick={() => beginUserEdit(usuario)}>Editar</button>
+                                                    <button type="button" className="danger-button" onClick={() => handleDeleteUser(usuario)} disabled={usuarioAtual?.id === usuario.id}>
+                                                        Excluir
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
+                        </>
+                    ) : (
+                        <p className="status-banner muted-banner">
+                            Seu usuario nao possui permissao para gerenciar outros usuarios.
+                        </p>
+                    )}
                 </article>
 
                 <article className="panel">

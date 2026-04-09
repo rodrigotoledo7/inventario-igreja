@@ -87,6 +87,13 @@
   color: #1f5a26;
 }
 
+.muted-banner {
+  margin-top: 0;
+  background: #f5f2eb;
+  border-color: #ddd3c2;
+  color: #6d5e47;
+}
+
 .dashboard-grid,
 .inventory-layout {
   display: grid;
