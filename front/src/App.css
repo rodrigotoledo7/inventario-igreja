@@ -169,8 +169,23 @@ button:hover {
   filter: brightness(1.05);
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: none;
+}
+
 .secondary-button {
   background: #20352a;
+}
+
+.ghost-button {
+  background: #d8e0d6;
+  color: #20352a;
+}
+
+.danger-button {
+  background: linear-gradient(135deg, #8f2f2f, #c44c4c);
 }
 
 .checkbox-row {
@@ -212,6 +227,27 @@ button:hover {
   justify-content: space-between;
   gap: 16px;
   align-items: center;
+}
+
+.list-card-column {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.card-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.compact-form {
+  width: 100%;
+}
+
+.actions-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
 }
 
 .card-top {
@@ -297,7 +333,8 @@ button:hover {
   .row,
   .inventory-card dl div,
   .list-card,
-  .hero-actions {
+  .hero-actions,
+  .actions-row {
     grid-template-columns: 1fr;
     flex-direction: column;
     align-items: flex-start;

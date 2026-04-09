@@ -18,6 +18,9 @@ class BemBase(BaseModel):
 class BemCreate(BemBase):
     pass
 
+class BemUpdate(BemBase):
+    pass
+
 class BemResponse(BemBase):
     id: int
     data_aquisicao: datetime
@@ -31,6 +34,9 @@ class LocalBase(BaseModel):
 class LocalCreate(LocalBase):
     pass
 
+class LocalUpdate(LocalBase):
+    pass
+
 class LocalResponse(LocalBase):
     id: int
 
@@ -40,6 +46,10 @@ class LocalResponse(LocalBase):
 class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     password: str = Field(min_length=6, max_length=128)
+
+class UserUpdate(BaseModel):
+    username: str = Field(min_length=3, max_length=50)
+    password: Optional[str] = Field(default=None, min_length=6, max_length=128)
 
 class UserResponse(BaseModel):
     id: int
