@@ -27,7 +27,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       SECRET_KEY: ${SECRET_KEY}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:80,http://localhost:3000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:80,http://localhost:3000,https://api.ipbportovelho.org.br,https://sistema.ipbportovelho.org.br}
       INIT_ADMIN_USERNAME: ${INIT_ADMIN_USERNAME}
       INIT_ADMIN_PASSWORD: ${INIT_ADMIN_PASSWORD}
       DEFAULT_LOCAL_NOME: ${DEFAULT_LOCAL_NOME:-Templo Sede}
