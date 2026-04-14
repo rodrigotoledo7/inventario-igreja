@@ -1,11 +1,16 @@
 #!/bin/bash
 set -e
 
-echo "Aguardando o banco de dados (db:3306)..."
-while ! nc -z db 3306; do
-  sleep 1
-done
-echo "Banco de dados pronto!"
+# Detecta se é SQLite
+if [[ $DATABASE_URL == sqlite* ]]; then
+  echo "Usando SQLite - pulando verificação de conexão externa."
+else
+  echo "Aguardando o banco de dados (db:3306)..."
+  while ! nc -z db 3306; do
+    sleep 1
+  done
+  echo "Banco de dados pronto!"
+fi
 
 python - <<'PY'
 import app.models  # noqa: F401

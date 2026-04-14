@@ -8,3 +8,5 @@ __pycache__
 *.pyc
 .idea
 .vscode
+*.db
+back/data/*.db

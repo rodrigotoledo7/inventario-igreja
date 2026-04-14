@@ -1,22 +1,4 @@
 services:
-  db:
-    image: mariadb:11.4
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    networks:
-      - app-network
-
   backend:
     build: ./back
     restart: always
@@ -25,7 +7,7 @@ services:
       - "8000:8000"
     environment:
       APP_ENV: ${APP_ENV:-development}
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: ${DATABASE_URL:-sqlite:///./data/igreja.db}
       SECRET_KEY: ${SECRET_KEY}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:80,http://localhost:3000}
@@ -33,9 +15,8 @@ services:
       INIT_ADMIN_USERNAME: ${INIT_ADMIN_USERNAME}
       INIT_ADMIN_PASSWORD: ${INIT_ADMIN_PASSWORD}
       DEFAULT_LOCAL_NOME: ${DEFAULT_LOCAL_NOME:-Templo Sede}
-    depends_on:
-      db:
-        condition: service_healthy
+    volumes:
+      - ./back/data:/app/data
     networks:
       - app-network
 
