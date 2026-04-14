@@ -1,12 +1,10 @@
 from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 from datetime import datetime
-import enum
 
+from app.core.enums import TipoBem
 from app.database import Base
 
-class TipoBem(str, enum.Enum):
-    MOVEL = "movel"
-    IMOVEL = "imovel"
 
 class User(Base):
     __tablename__ = "users"
@@ -15,11 +13,14 @@ class User(Base):
     username = Column(String(50), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
 
+
 class Local(Base):
     __tablename__ = "locais"
 
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String(100), nullable=False, unique=True)
+    bens = relationship("Bem", back_populates="local", lazy="selectin")
+
 
 class Bem(Base):
     __tablename__ = "bens"
@@ -32,3 +33,4 @@ class Bem(Base):
     data_aquisicao = Column(DateTime, default=datetime.utcnow, nullable=False)
     identificador = Column(String(50), unique=True, index=True)  # Ex: Plaqueta de patrimônio
     local_id = Column(Integer, ForeignKey("locais.id"), nullable=False)
+    local = relationship("Local", back_populates="bens")

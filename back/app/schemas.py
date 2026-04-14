@@ -1,11 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
-from enum import Enum
 
-class TipoBem(str, Enum):
-    MOVEL = "movel"
-    IMOVEL = "imovel"
+from app.core.enums import TipoBem
 
 class BemBase(BaseModel):
     nome: str = Field(min_length=2, max_length=100)
