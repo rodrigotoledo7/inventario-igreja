@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import api, { getApiErrorMessage } from "../api";
-import "./App.css";
+import "../App.css";
 
 const LoginPage = () => {
     const navigate = useNavigate();
