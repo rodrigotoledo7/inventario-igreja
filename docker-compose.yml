@@ -1,41 +1,118 @@
 services:
-  backend:
-    build: ./back
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
     restart: always
-    # Expõe a porta para o seu navegador/frontend conseguir acessar
-    ports:
-      - "8000:8000"
-    environment:
-      APP_ENV: ${APP_ENV:-development}
-      DATABASE_URL: ${DATABASE_URL:-sqlite:///./data/igreja.db}
-      SECRET_KEY: ${SECRET_KEY}
-      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:80,http://localhost:3000}
-      ADMIN_USERNAMES: ${ADMIN_USERNAMES:-admin}
-      INIT_ADMIN_USERNAME: ${INIT_ADMIN_USERNAME}
-      INIT_ADMIN_PASSWORD: ${INIT_ADMIN_PASSWORD}
-      DEFAULT_LOCAL_NOME: ${DEFAULT_LOCAL_NOME:-Templo Sede}
-    volumes:
-      - ./back/data:/app/data
-    networks:
-      - app-network
-
-  frontend:
-    build:
-      context: ./front
-      args:
-        REACT_APP_API_URL: ${REACT_APP_API_URL:-/api}
-    restart: always
+    command:
+      - --api.insecure=false
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.myresolver.acme.httpchallenge=true
+      - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.myresolver.acme.email=rodrigotoledo7@gmail.com
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
     ports:
       - "80:80"
+      - "443:443"
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.edge-ratelimit.ratelimit.average=100"
+      - "traefik.http.middlewares.edge-ratelimit.ratelimit.burst=50"
+    networks:
+      - app_network
+
+  backend:
+    image: rodrigotoledos/inventario-igreja-backend:7
+    restart: always
+    environment:
+      APP_ENV: production
+      DATABASE_URL: "sqlite:////app/data/igreja.db"
+      SECRET_KEY: ${SECRET_KEY}
+      CORS_ORIGINS: "https://sistema.ipbportovelho.org.br"
+      ADMIN_USERNAMES: "admin"
+    volumes:
+      - ./back_data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/', timeout=2)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`sistema.ipbportovelho.org.br`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=myresolver"
+      - "traefik.http.routers.backend.middlewares=edge-ratelimit@docker"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+    networks:
+      - app_network
+
+  frontend:
+    image: rodrigotoledos/inventario-igreja-frontend:7
+    restart: always
+    environment:
+      - REACT_APP_API_URL=/api
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`sistema.ipbportovelho.org.br`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+      - "traefik.http.routers.frontend-http.rule=Host(`sistema.ipbportovelho.org.br`)"
+      - "traefik.http.routers.frontend-http.entrypoints=web"
+      - "traefik.http.routers.frontend-http.middlewares=redirect-to-https@docker"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    networks:
+      - app_network
     depends_on:
       - backend
+
+  app1:
+    image: rodrigotoledos/ipbpvh:16478216858
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app1.rule=Host(`ipbportovelho.org.br`)"
+      - "traefik.http.routers.app1.entrypoints=websecure"
+      - "traefik.http.routers.app1.tls.certresolver=myresolver"
+      - "traefik.http.routers.app1-http.rule=Host(`ipbportovelho.org.br`)"
+      - "traefik.http.routers.app1-http.entrypoints=web"
+      - "traefik.http.routers.app1-http.middlewares=redirect-to-https@docker"
+      - "traefik.http.services.app1.loadbalancer.server.port=3000"
     networks:
-      - app-network
+      - app_network
+
+  app2:
+    image: rodrigotoledos/pessoal:16808349430
+    restart: always
+    volumes:
+      - /home/ubuntu/materiais:/app/public/materiais:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app2.rule=Host(`rodrigotoledo.mat.br`)"
+      - "traefik.http.routers.app2.entrypoints=websecure"
+      - "traefik.http.routers.app2.tls.certresolver=myresolver"
+      - "traefik.http.routers.app2-http.rule=Host(`rodrigotoledo.mat.br`)"
+      - "traefik.http.routers.app2-http.entrypoints=web"
+      - "traefik.http.routers.app2-http.middlewares=redirect-to-https@docker"
+      - "traefik.http.services.app2.loadbalancer.server.port=3000"
+    networks:
+      - app_network
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 --cleanup
 
 networks:
-  app-network:
+  app_network:
     driver: bridge
-
-volumes:
-  db_data:

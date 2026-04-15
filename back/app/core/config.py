@@ -5,18 +5,18 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_env: str = Field(default="development", alias="APP_ENV")
-    database_url: str = Field(..., alias="DATABASE_URL")
-    secret_key: str = Field(..., alias="SECRET_KEY")
-    access_token_expire_minutes: int = Field(default=60 * 8, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
-    cors_origins: str = Field(default="http://localhost,http://localhost:80,http://localhost:3000", alias="CORS_ORIGINS")
-    init_admin_username: str | None = Field(default=None, alias="INIT_ADMIN_USERNAME")
-    init_admin_password: str | None = Field(default=None, alias="INIT_ADMIN_PASSWORD")
-    admin_usernames: str = Field(default="", alias="ADMIN_USERNAMES")
-    default_local_nome: str = Field(default="Templo Sede", alias="DEFAULT_LOCAL_NOME")
+    app_env: str = "development"
+    database_url: str = "sqlite:///./data/igreja.db"
+    secret_key: str = "change-me-app-secret"
+    access_token_expire_minutes: int = 480
+    cors_origins: str = "http://localhost,http://localhost:80,http://localhost:3000"
+    init_admin_username: str | None = "admin"
+    init_admin_password: str | None = "admin1234"
+    admin_usernames: str = "admin"
+    default_local_nome: str = "Templo Sede"
 
     model_config = SettingsConfigDict(
-        env_file=("app/.env", ".env"),
+        env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )

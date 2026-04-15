@@ -2,8 +2,8 @@
 set -e
 
 # Detecta se é SQLite
-if [[ $DATABASE_URL == sqlite* ]]; then
-  echo "Usando SQLite - pulando verificação de conexão externa."
+if [[ $DATABASE_URL == sqlite* ]] || [[ -z "$DATABASE_URL" ]]; then
+  echo "Usando SQLite ou URL vazia - pulando verificacao de conexao externa."
 else
   echo "Aguardando o banco de dados (db:3306)..."
   while ! nc -z db 3306; do

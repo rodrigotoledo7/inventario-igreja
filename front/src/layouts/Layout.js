@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 const Layout = ({ children }) => {
     return (
@@ -9,10 +9,10 @@ const Layout = ({ children }) => {
                     <strong>IPB Porto Velho</strong>
                 </div>
                 <ul className="sidebar-menu">
-                    <li><Link to="/">Dashboard</Link></li>
-                    <li><Link to="/users">Usuários</Link></li>
-                    <li><Link to="/locais">Locais</Link></li>
-                    <li><Link to="/inventario">Inventário</Link></li>
+                    <li><NavLink to="/" end>Dashboard</NavLink></li>
+                    <li><NavLink to="/users">Usuários</NavLink></li>
+                    <li><NavLink to="/locais">Locais</NavLink></li>
+                    <li><NavLink to="/inventario">Inventário</NavLink></li>
                 </ul>
             </nav>
             <main className="main-content">

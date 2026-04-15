@@ -5,12 +5,24 @@ import api, { getApiErrorMessage } from "../api";
 const DashboardPage = () => {
     const navigate = useNavigate();
     const [usuarioAtual, setUsuarioAtual] = React.useState(null);
+    const [stats, setStats] = React.useState({ users: 0, locais: 0, bens: 0 });
 
     React.useEffect(() => {
-        const loadProfile = async () => {
+        const loadDashboardData = async () => {
             try {
-                const resPerfil = await api.get("/me");
+                const [resPerfil, resUsers, resLocais, resBens] = await Promise.all([
+                    api.get("/me"),
+                    api.get("/users").catch(() => ({ data: [] })),
+                    api.get("/locais"),
+                    api.get("/bens"),
+                ]);
+                
                 setUsuarioAtual(resPerfil.data);
+                setStats({
+                    users: resUsers.data.length,
+                    locais: resLocais.data.length,
+                    bens: resBens.data.length
+                });
             } catch (error) {
                 if (error?.response?.status === 401) {
                     localStorage.removeItem("token");
@@ -18,7 +30,7 @@ const DashboardPage = () => {
                 }
             }
         };
-        loadProfile();
+        loadDashboardData();
     }, [navigate]);
 
     const handleLogout = () => {
@@ -27,22 +39,48 @@ const DashboardPage = () => {
     };
 
     return (
-        <header className="hero">
-            <div>
-                <p className="eyebrow">Primeira IPB de Porto Velho</p>
-                <h1>Controle de inventario</h1>
-                <p className="hero-copy">
-                    Gerencie usuarios de acesso, locais fisicos e bens patrimoniais em uma unica interface.
-                </p>
-            </div>
-            <div className="hero-actions">
-                <div className="current-user">
-                    <span>Usuario logado</span>
-                    <strong>{usuarioAtual?.username}</strong>
+        <>
+            <header className="hero">
+                <div>
+                    <p className="eyebrow">Primeira IPB de Porto Velho</p>
+                    <h1>Controle de inventário</h1>
+                    <p className="hero-copy">
+                        Gerencie usuários de acesso, locais físicos e bens patrimoniais em uma única interface centralizada.
+                    </p>
                 </div>
-                <button className="secondary-button" onClick={handleLogout}>Sair</button>
+                <div className="hero-actions">
+                    <div className="current-user">
+                        <span>Usuário logado</span>
+                        <strong>{usuarioAtual?.username}</strong>
+                    </div>
+                    <button className="secondary-button" onClick={handleLogout}>Sair</button>
+                </div>
+            </header>
+
+            <div className="dashboard-grid">
+                <article className="panel">
+                    <div className="card-copy">
+                        <p className="eyebrow">Patrimônio</p>
+                        <h2 style={{ fontSize: '2.5rem', margin: '10px 0' }}>{stats.bens}</h2>
+                        <p>Itens cadastrados no inventário total.</p>
+                    </div>
+                </article>
+                <article className="panel">
+                    <div className="card-copy">
+                        <p className="eyebrow">Estrutura</p>
+                        <h2 style={{ fontSize: '2.5rem', margin: '10px 0' }}>{stats.locais}</h2>
+                        <p>Locais e departamentos registrados.</p>
+                    </div>
+                </article>
+                <article className="panel">
+                    <div className="card-copy">
+                        <p className="eyebrow">Segurança</p>
+                        <h2 style={{ fontSize: '2.5rem', margin: '10px 0' }}>{stats.users}</h2>
+                        <p>Usuários com acesso ao sistema.</p>
+                    </div>
+                </article>
             </div>
-        </header>
+        </>
     );
 };
 
