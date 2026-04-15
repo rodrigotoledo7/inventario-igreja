@@ -1,0 +1,139 @@
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    restart: always
+    environment:
+      DOCKER_API_VERSION: "1.52"
+    command:
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.myresolver.acme.httpchallenge=true
+      - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.myresolver.acme.email=${TRAEFIK_ACME_EMAIL:?defina TRAEFIK_ACME_EMAIL no arquivo .env}
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+    ports:
+      - "80:80"
+      - "443:443"
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.secure-headers.headers.contenttypenosniff=true"
+      - "traefik.http.middlewares.secure-headers.headers.browserxssfilter=true"
+      - "traefik.http.middlewares.secure-headers.headers.framedeny=true"
+      - "traefik.http.middlewares.secure-headers.headers.referrerpolicy=no-referrer"
+      - "traefik.http.middlewares.secure-headers.headers.stsseconds=31536000"
+      - "traefik.http.middlewares.secure-headers.headers.stsincludesubdomains=true"
+      - "traefik.http.middlewares.secure-headers.headers.stspreload=true"
+      - "traefik.http.middlewares.secure-headers.headers.customresponseheaders.Server="
+      - "traefik.http.middlewares.edge-ratelimit.ratelimit.average=100"
+      - "traefik.http.middlewares.edge-ratelimit.ratelimit.burst=50"
+    networks:
+      - app_network
+
+  backend:
+    build:
+      context: ./back
+    image: inventario-igreja-backend:oci
+    restart: always
+    environment:
+      APP_ENV: production
+      SECRET_KEY: ${SECRET_KEY:?defina SECRET_KEY no arquivo .env}
+      DATABASE_URL: mysql+pymysql://igreja_user:${MYSQL_PASSWORD:?defina MYSQL_PASSWORD no arquivo .env}@db:3306/igreja_db
+      CORS_ORIGINS: ${CORS_ORIGINS:?defina CORS_ORIGINS no arquivo .env}
+      ADMIN_USERNAMES: ${ADMIN_USERNAMES:-admin}
+      INIT_ADMIN_USERNAME: ${INIT_ADMIN_USERNAME:-admin}
+      INIT_ADMIN_PASSWORD: ${INIT_ADMIN_PASSWORD:?defina INIT_ADMIN_PASSWORD no arquivo .env}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)\" >/dev/null 2>&1 || exit 1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`${APP_DOMAIN:?defina APP_DOMAIN no arquivo .env}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.priority=100"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=myresolver"
+      - "traefik.http.routers.backend.middlewares=secure-headers@docker,edge-ratelimit@docker"
+      - "traefik.http.routers.backend-http.rule=Host(`${APP_DOMAIN:?defina APP_DOMAIN no arquivo .env}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend-http.priority=100"
+      - "traefik.http.routers.backend-http.entrypoints=web"
+      - "traefik.http.routers.backend-http.middlewares=redirect-to-https@docker"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+    networks:
+      - app_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./front
+      args:
+        VITE_API_URL: /api
+    image: inventario-igreja-frontend:oci
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${APP_DOMAIN:?defina APP_DOMAIN no arquivo .env}`)"
+      - "traefik.http.routers.frontend.priority=10"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+      - "traefik.http.routers.frontend.middlewares=secure-headers@docker,edge-ratelimit@docker"
+      - "traefik.http.routers.frontend-http.rule=Host(`${APP_DOMAIN:?defina APP_DOMAIN no arquivo .env}`)"
+      - "traefik.http.routers.frontend-http.priority=10"
+      - "traefik.http.routers.frontend-http.entrypoints=web"
+      - "traefik.http.routers.frontend-http.middlewares=redirect-to-https@docker"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    networks:
+      - app_network
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  db:
+    image: mariadb:11.4
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?defina MYSQL_ROOT_PASSWORD no arquivo .env}
+      MYSQL_DATABASE: igreja_db
+      MYSQL_USER: igreja_user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?defina MYSQL_PASSWORD no arquivo .env}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mariadb-admin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+    enable_ipv6: false
+
+volumes:
+  db_data:

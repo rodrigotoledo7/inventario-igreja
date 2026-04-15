@@ -6,7 +6,6 @@ import "../App.css";
 const LoginPage = () => {
     const navigate = useNavigate();
     const [loginData, setLoginData] = React.useState({ username: "", password: "" });
-    const [statusMessage, setStatusMessage] = React.useState("");
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -17,7 +16,6 @@ const LoginPage = () => {
 
             const response = await api.post("/login", formData);
             localStorage.setItem("token", response.data.access_token);
-            setStatusMessage("");
             navigate("/");
         } catch (error) {
             alert(getApiErrorMessage(error, "Falha no login. Verifique as credenciais."));

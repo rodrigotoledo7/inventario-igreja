@@ -16,7 +16,7 @@ const Layout = ({ children }) => {
                 </ul>
             </nav>
             <main className="main-content">
-                {children}
+                <div className="app-shell">{children}</div>
             </main>
         </div>
     );

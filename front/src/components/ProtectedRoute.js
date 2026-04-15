@@ -1,18 +1,15 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import api, { getApiErrorMessage } from "../api";
+import { Navigate, useLocation } from "react-router-dom";
 
 const ProtectedRoute = ({ children }) => {
-    const navigate = useNavigate();
+    const location = useLocation();
     const isAuthenticated = !!localStorage.getItem("token");
 
-    React.useEffect(() => {
-        if (!isAuthenticated) {
-            navigate("/login");
-        }
-    }, [isAuthenticated, navigate]);
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace state={{ from: location }} />;
+    }
 
-    return isAuthenticated ? children : null;
+    return children;
 };
 
 export default ProtectedRoute;

@@ -1,118 +1,71 @@
 services:
-  traefik:
-    image: traefik:v2.10
-    container_name: traefik
-    restart: always
-    command:
-      - --api.insecure=false
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.myresolver.acme.httpchallenge=true
-      - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
-      - --certificatesresolvers.myresolver.acme.email=rodrigotoledo7@gmail.com
-      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
-    ports:
-      - "80:80"
-      - "443:443"
-      - "127.0.0.1:8080:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./letsencrypt:/letsencrypt
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.edge-ratelimit.ratelimit.average=100"
-      - "traefik.http.middlewares.edge-ratelimit.ratelimit.burst=50"
-    networks:
-      - app_network
-
   backend:
-    image: rodrigotoledos/inventario-igreja-backend:7
+    build:
+      context: ./back
+    image: inventario-igreja-backend:local
     restart: always
     environment:
       APP_ENV: production
-      DATABASE_URL: "sqlite:////app/data/igreja.db"
-      SECRET_KEY: ${SECRET_KEY}
-      CORS_ORIGINS: "https://sistema.ipbportovelho.org.br"
+      DATABASE_URL: "mysql+pymysql://igreja_user:${MYSQL_PASSWORD}@db:3306/igreja_db"
+      SECRET_KEY: ${SECRET_KEY:?defina SECRET_KEY no arquivo .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:?defina CORS_ORIGINS no arquivo .env}
       ADMIN_USERNAMES: "admin"
+      INIT_ADMIN_USERNAME: ${INIT_ADMIN_USERNAME:-admin}
+      INIT_ADMIN_PASSWORD: ${INIT_ADMIN_PASSWORD:?defina INIT_ADMIN_PASSWORD no arquivo .env}
     volumes:
       - ./back_data:/app/data
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/', timeout=2)\""]
-      interval: 30s
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)\" >/dev/null 2>&1 || exit 1"]
+      interval: 15s
       timeout: 5s
-      retries: 3
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`sistema.ipbportovelho.org.br`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls.certresolver=myresolver"
-      - "traefik.http.routers.backend.middlewares=edge-ratelimit@docker"
-      - "traefik.http.services.backend.loadbalancer.server.port=8000"
-    networks:
-      - app_network
-
-  frontend:
-    image: rodrigotoledos/inventario-igreja-frontend:7
-    restart: always
-    environment:
-      - REACT_APP_API_URL=/api
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`sistema.ipbportovelho.org.br`)"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
-      - "traefik.http.routers.frontend-http.rule=Host(`sistema.ipbportovelho.org.br`)"
-      - "traefik.http.routers.frontend-http.entrypoints=web"
-      - "traefik.http.routers.frontend-http.middlewares=redirect-to-https@docker"
-      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      retries: 5
+      start_period: 20s
     networks:
       - app_network
     depends_on:
-      - backend
+      db:
+        condition: service_healthy
 
-  app1:
-    image: rodrigotoledos/ipbpvh:16478216858
+  frontend:
+    build:
+      context: ./front
+      args:
+        VITE_API_URL: /api
+    image: inventario-igreja-frontend:local
     restart: always
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.app1.rule=Host(`ipbportovelho.org.br`)"
-      - "traefik.http.routers.app1.entrypoints=websecure"
-      - "traefik.http.routers.app1.tls.certresolver=myresolver"
-      - "traefik.http.routers.app1-http.rule=Host(`ipbportovelho.org.br`)"
-      - "traefik.http.routers.app1-http.entrypoints=web"
-      - "traefik.http.routers.app1-http.middlewares=redirect-to-https@docker"
-      - "traefik.http.services.app1.loadbalancer.server.port=3000"
+    ports:
+      - "80:80"
     networks:
       - app_network
+    depends_on:
+      backend:
+        condition: service_healthy
 
-  app2:
-    image: rodrigotoledos/pessoal:16808349430
+  db:
+    image: mariadb:11.4
     restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?defina MYSQL_ROOT_PASSWORD no arquivo .env}
+      MYSQL_DATABASE: igreja_db
+      MYSQL_USER: igreja_user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?defina MYSQL_PASSWORD no arquivo .env}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
     volumes:
-      - /home/ubuntu/materiais:/app/public/materiais:ro
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.app2.rule=Host(`rodrigotoledo.mat.br`)"
-      - "traefik.http.routers.app2.entrypoints=websecure"
-      - "traefik.http.routers.app2.tls.certresolver=myresolver"
-      - "traefik.http.routers.app2-http.rule=Host(`rodrigotoledo.mat.br`)"
-      - "traefik.http.routers.app2-http.entrypoints=web"
-      - "traefik.http.routers.app2-http.middlewares=redirect-to-https@docker"
-      - "traefik.http.services.app2.loadbalancer.server.port=3000"
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     networks:
       - app_network
-
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    restart: always
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 300 --cleanup
 
 networks:
   app_network:
     driver: bridge
+
+volumes:
+  db_data:

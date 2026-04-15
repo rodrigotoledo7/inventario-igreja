@@ -1,18 +1,18 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-jest.mock('./api', () => ({
+vi.mock('./api', () => ({
   __esModule: true,
   default: {
-    get: jest.fn(),
-    post: jest.fn(),
+    get: vi.fn(),
+    post: vi.fn(),
     interceptors: {
       request: {
-        use: jest.fn(),
+        use: vi.fn(),
       },
     },
   },
-  getApiErrorMessage: jest.fn(),
+  getApiErrorMessage: vi.fn(),
 }));
 
 test('renders learn react link', () => {

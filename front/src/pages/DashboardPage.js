@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import api, { getApiErrorMessage } from "../api";
+import api from "../api";
 
 const DashboardPage = () => {
     const navigate = useNavigate();
@@ -39,7 +39,7 @@ const DashboardPage = () => {
     };
 
     return (
-        <>
+        <section className="dashboard-shell">
             <header className="hero">
                 <div>
                     <p className="eyebrow">Primeira IPB de Porto Velho</p>
@@ -80,7 +80,7 @@ const DashboardPage = () => {
                     </div>
                 </article>
             </div>
-        </>
+        </section>
     );
 };
 

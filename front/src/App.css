@@ -70,6 +70,7 @@
 .app-shell {
   max-width: 1320px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .auth-panel,
@@ -80,12 +81,44 @@
   box-shadow: 0 20px 60px rgba(22, 45, 34, 0.12);
 }
 
+.auth-panel {
+  width: min(100%, 460px);
+  padding: 32px;
+  display: grid;
+  gap: 24px;
+}
+
+.dashboard-shell {
+  display: grid;
+  gap: 24px;
+}
+
 .hero {
   display: flex;
   justify-content: space-between;
   gap: 24px;
   align-items: flex-start;
-  margin-bottom: 24px;
+  margin-bottom: 0;
+  padding: 32px;
+  background:
+    linear-gradient(140deg, rgba(32, 53, 42, 0.96), rgba(51, 92, 66, 0.92)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+  color: #f8f4ec;
+  border-radius: 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: auto -80px -120px auto;
+  width: 240px;
+  height: 240px;
+  border-radius: 999px;
+  background: rgba(219, 189, 148, 0.18);
+  filter: blur(6px);
+  pointer-events: none;
 }
 
 .hero h1,
@@ -98,6 +131,16 @@
 .auth-copy {
   max-width: 52ch;
   color: #496354;
+}
+
+.hero .eyebrow,
+.hero-copy,
+.hero .current-user span {
+  color: rgba(248, 244, 236, 0.78);
+}
+
+.hero .current-user strong {
+  color: #fff;
 }
 
 .eyebrow {
@@ -115,7 +158,9 @@
 }
 
 .current-user {
-  background: #f3efe8;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(10px);
   border-radius: 18px;
   padding: 12px 16px;
   min-width: 160px;
@@ -307,6 +352,11 @@ button:disabled {
   width: 100%;
 }
 
+.card-copy h2 {
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  margin: 10px 0;
+}
+
 .actions-row {
   display: flex;
   gap: 10px;
@@ -413,9 +463,21 @@ button:disabled {
   .list-card,
   .hero-actions,
   .actions-row {
-    grid-template-columns: 1fr;
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .hero {
+    padding: 24px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inventory-card dl div,
+  .row {
+    grid-template-columns: 1fr;
   }
 
   .current-user {
