@@ -1,30 +1,54 @@
 services:
+  db:
+    image: mariadb:11.4
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?defina MYSQL_ROOT_PASSWORD no arquivo .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-igreja_db}
+      MYSQL_USER: ${MYSQL_USER:-igreja_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?defina MYSQL_PASSWORD no arquivo .env}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mariadb-admin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - app_network
+
   backend:
     build:
       context: ./back
     image: inventario-igreja-backend:local
     restart: always
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
       APP_ENV: production
-      DATABASE_URL: "mysql+pymysql://igreja_user:${MYSQL_PASSWORD}@db:3306/igreja_db"
+      DATABASE_URL: "mysql+pymysql://${MYSQL_USER:-igreja_user}:${MYSQL_PASSWORD:?defina MYSQL_PASSWORD no arquivo .env}@db:3306/${MYSQL_DATABASE:-igreja_db}?charset=utf8mb4"
       SECRET_KEY: ${SECRET_KEY:?defina SECRET_KEY no arquivo .env}
       CORS_ORIGINS: ${CORS_ORIGINS:?defina CORS_ORIGINS no arquivo .env}
       ADMIN_USERNAMES: "admin"
       INIT_ADMIN_USERNAME: ${INIT_ADMIN_USERNAME:-admin}
       INIT_ADMIN_PASSWORD: ${INIT_ADMIN_PASSWORD:?defina INIT_ADMIN_PASSWORD no arquivo .env}
-    volumes:
-      - ./back_data:/app/data
+      DEFAULT_LOCAL_NOME: ${DEFAULT_LOCAL_NOME:-Templo Sede}
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)\" >/dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8000/healthz\", timeout=2)' >/dev/null 2>&1 || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
       start_period: 20s
     networks:
       - app_network
-    depends_on:
-      db:
-        condition: service_healthy
+    ports:
+      - "8000:8000"
 
   frontend:
     build:
@@ -40,28 +64,6 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-
-  db:
-    image: mariadb:11.4
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?defina MYSQL_ROOT_PASSWORD no arquivo .env}
-      MYSQL_DATABASE: igreja_db
-      MYSQL_USER: igreja_user
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?defina MYSQL_PASSWORD no arquivo .env}
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 20s
-    networks:
-      - app_network
 
 networks:
   app_network:

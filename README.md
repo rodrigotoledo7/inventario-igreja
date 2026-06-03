@@ -1,90 +1,30 @@
-# Projeto atualizado incluindo arquivos do back, códigos ajustados pelo chatGPT
+# Inventario Igreja
 
-## API atrás do frontend
+Aplicacao de inventario patrimonial da Primeira IPB de Porto Velho.
 
-Em produção, o frontend deve acessar a API pelo mesmo domínio usando o caminho `/api`.
+## Deploy com MariaDB
 
-- Frontend: `https://sistema.ipbportovelho.org.br`
-- API via proxy: `https://sistema.ipbportovelho.org.br/api`
-- Backend interno: acessível apenas na rede Docker/proxy
+A composicao principal agora sobe um container MariaDB e aponta o backend para ele via `DATABASE_URL=mysql+pymysql://...@db:3306/...`.
 
-Se for necessario sobrescrever esse comportamento em outro ambiente, defina `REACT_APP_API_URL` no build da imagem do frontend, nao apenas em runtime.
+- O backend espera o banco ficar pronto antes de iniciar o Uvicorn.
+- O frontend continua acessando a API pelo caminho relativo `/api`.
+- O build do frontend deve usar `VITE_API_URL=/api` quando for empacotado para producao.
 
-### Build da imagem do frontend
+## Variaveis principais
 
-O bundle React le `REACT_APP_API_URL` durante `npm run build`. Em producao, a imagem deve ser compilada com `REACT_APP_API_URL=/api`.
+- `MYSQL_ROOT_PASSWORD`
+- `MYSQL_DATABASE`
+- `MYSQL_USER`
+- `MYSQL_PASSWORD`
+- `DATABASE_URL`
+- `SECRET_KEY`
+- `CORS_ORIGINS`
+- `VITE_API_URL`
 
-- No `front/Dockerfile`, isso entra como `ARG` e `ENV` antes do `npm run build`.
-- No `docker-compose.yml`, o valor e passado em `build.args`.
-- Em producao, o codigo do frontend ja prioriza `/api`, evitando gravar `localhost:8080/api` no bundle final.
+## Execucao local com Docker
 
-## Getting Started with Create React App
+```bash
+docker compose up --build
+```
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-
-## Available Scripts
-
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+A interface fica em `http://localhost` e a API em `http://localhost/api`.
